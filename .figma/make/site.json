@@ -1,0 +1,10 @@
+{
+  "description": "A full-stack event management platform designed for colleges and students, facilitating event organization, user authentication, and responsive dashboards.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
