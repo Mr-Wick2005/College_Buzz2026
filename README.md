@@ -2,6 +2,9 @@
 
 **A full-stack campus event discovery, registration, and management platform built for students, organizers, and college administrators.**
 
+CHECK OUT: https://college-buzz2026.vercel.app/
+
+
 College Buzz provides a centralized platform for discovering and managing university events such as workshops, hackathons, cultural programs, technical events, sports activities, and student-led initiatives.
 
 The platform combines a responsive React frontend with Supabase-powered authentication, PostgreSQL data management, Row Level Security, and cloud storage.
