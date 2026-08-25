@@ -7,8 +7,6 @@ CREATE TABLE kv_store_028b7c87 (
 );
 */
 
-// View at https://supabase.com/dashboard/project/hdnrtvqypkxyhbdjprme/database/tables
-
 // This file provides a simple key-value interface for server-side persistence. It should be adequate for most small-scale use cases.
 
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8"

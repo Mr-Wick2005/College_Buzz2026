@@ -1,21 +1,49 @@
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Production build output
 dist/
 build/
-.cache/
-.env*
+
+# Environment variables & secrets (NEVER commit)
+.env
+.env.*
 !.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vite & tool caches
+.cache/
 .vite/
 vite.config.*.timestamp-*
 *.tsbuildinfo
-*-debug.log*
+
+# Logs & temp files
 logs/
 *.log
-.claude-replay.*
+*-debug.log*
 .tmp-*
+.tempmediaStorage/
+scratch/
 
-# Platform-managed agentplat state, not project source. In the
-# client-initiated single-repo workspace layout (make's `Path: "."` spec) the
-# repo root IS the workspace root, so these land inside this repo rather than
-# beside it.
+# IDE & platform metadata
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.mcp.json
+.claude-replay.*
+.mise.toml
+.figma/
+plans/
 /.plugins/
 /.opencode-skills/
+utils/
