@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react"
 
 const FloatingElements = () => {
   return (
@@ -12,7 +12,7 @@ const FloatingElements = () => {
       <div className="absolute top-1/2 left-1/6 w-64 h-64 bg-gradient-to-r from-indigo-600/5 to-purple-600/5 rounded-full blur-3xl animate-pulse delay-300" />
       <div className="absolute bottom-1/3 right-1/6 w-80 h-80 bg-gradient-to-r from-purple-600/5 to-pink-600/5 rounded-full blur-3xl animate-pulse delay-1200" />
     </div>
-  );
-};
+  )
+}
 
-export default FloatingElements;
+export default FloatingElements

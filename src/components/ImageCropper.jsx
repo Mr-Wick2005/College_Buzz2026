@@ -1,43 +1,64 @@
-import React, { useState, useRef } from 'react';
-import ReactCrop from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
+import React, { useState, useRef } from "react"
+
+import ReactCrop from "react-image-crop"
+
+import "react-image-crop/dist/ReactCrop.css"
 
 const ImageCropper = ({ imageSrc, onCropComplete, onCancel }) => {
-  const [crop, setCrop] = useState({ unit: '%', width: 90 });
-  const [completedCrop, setCompletedCrop] = useState(null);
-  const imgRef = useRef(null);
+  const [crop, setCrop] = useState({ unit: "%", width: 90 })
+
+  const [completedCrop, setCompletedCrop] = useState(null)
+
+  const imgRef = useRef(null)
 
   const getCroppedImg = (image, crop) => {
-    const canvas = document.createElement('canvas');
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-    canvas.width = crop.width;
-    canvas.height = crop.height;
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas")
+
+    const scaleX = image.naturalWidth / image.width
+
+    const scaleY = image.naturalHeight / image.height
+
+    canvas.width = crop.width
+
+    canvas.height = crop.height
+
+    const ctx = canvas.getContext("2d")
 
     ctx.drawImage(
       image,
+
       crop.x * scaleX,
+
       crop.y * scaleY,
+
       crop.width * scaleX,
+
       crop.height * scaleY,
+
       0,
+
       0,
+
       crop.width,
-      crop.height
-    );
+
+      crop.height,
+    )
 
     return new Promise((resolve) => {
-      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.95);
-    });
-  };
+      canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.95)
+    })
+  }
 
   const handleCropComplete = async () => {
     if (completedCrop && imgRef.current) {
-      const croppedImageBlob = await getCroppedImg(imgRef.current, completedCrop);
-      onCropComplete(croppedImageBlob);
+      const croppedImageBlob = await getCroppedImg(
+        imgRef.current,
+        completedCrop,
+      )
+
+      onCropComplete(croppedImageBlob)
     }
-  };
+  }
 
   return (
     <div className="w-full">
@@ -52,12 +73,14 @@ const ImageCropper = ({ imageSrc, onCropComplete, onCancel }) => {
             ref={imgRef}
             src={imageSrc}
             alt="Crop preview"
-            style={{ display: 'block', maxWidth: '100%', maxHeight: '600px' }}
+            style={{ display: "block", maxWidth: "100%", maxHeight: "600px" }}
           />
         </ReactCrop>
       </div>
       <div className="flex items-center justify-between">
-        <div className="text-white/70 text-sm">Drag to adjust crop area freely.</div>
+        <div className="text-white/70 text-sm">
+          Drag to adjust crop area freely.
+        </div>
         <div className="flex space-x-3">
           <button
             onClick={onCancel}
@@ -74,7 +97,7 @@ const ImageCropper = ({ imageSrc, onCropComplete, onCancel }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ImageCropper;
+export default ImageCropper

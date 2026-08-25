@@ -1,39 +1,60 @@
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Zap, GraduationCap, Building2, User, LogOut } from 'lucide-react';
+import React, { useState } from "react"
+
+import { Link, useLocation, useNavigate } from "react-router-dom"
+
+import {
+  Menu,
+  X,
+  Zap,
+  GraduationCap,
+  Building2,
+  User,
+  LogOut,
+} from "lucide-react"
+
+import { useAuth } from "../../context/AuthContext"
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('user_role');
-  const userName = localStorage.getItem('user_name') || 'Account';
+  const location = useLocation()
+
+  const navigate = useNavigate()
+
+  const { isAuthenticated, role, profile, signOut } = useAuth()
+
+  const token = isAuthenticated
+
+  const userRole = role
+
+  const userName =
+    profile?.full_name || localStorage.getItem("user_name") || "Account"
 
   const navLinks = [
-    { id: 'home', label: 'Home' },
-    { id: 'events', label: 'Events' },
-    { id: 'about', label: 'About Us' },
-  ];
+    { id: "home", label: "Home" },
+
+    { id: "events", label: "Events" },
+
+    { id: "about", label: "About Us" },
+  ]
 
   const scrollToSection = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      navigate('/');
-    }
-    setIsMenuOpen(false);
-  };
+    const element = document.getElementById(id)
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user_email');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_role');
-    navigate('/');
-  };
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" })
+    } else {
+      navigate("/")
+    }
+
+    setIsMenuOpen(false)
+  }
+
+  const handleLogout = async () => {
+    await signOut()
+
+    navigate("/")
+  }
 
   return (
     <header className="fixed top-0 w-full z-50 backdrop-blur-2xl bg-slate-950/80 border-b border-slate-800/80 transition-all">
@@ -52,20 +73,33 @@ const Header = () => {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-6">
-            <button onClick={() => navigate('/')} className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">
+            <button
+              onClick={() => navigate("/")}
+              className="text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+            >
               Home
             </button>
-            <button onClick={() => scrollToSection('events')} className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">
+            <button
+              onClick={() => scrollToSection("events")}
+              className="text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+            >
               Events
             </button>
-            <button onClick={() => scrollToSection('contact')} className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">
+            <button
+              onClick={() => scrollToSection("contact")}
+              className="text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+            >
               Contact
             </button>
 
             {token ? (
               <div className="flex items-center space-x-3 pl-4 border-l border-slate-800">
                 <Link
-                  to={role === 'college' ? '/admin-dashboard' : '/student-dashboard'}
+                  to={
+                    userRole === "admin" || userRole === "college"
+                      ? "/admin-dashboard"
+                      : "/student-dashboard"
+                  }
                   className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center space-x-1.5"
                 >
                   <User size={14} />
@@ -108,27 +142,46 @@ const Header = () => {
         {/* Mobile Dropdown */}
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-slate-800 space-y-3 bg-slate-950">
-            <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-2 text-xs font-semibold text-slate-300">
+            <button
+              onClick={() => {
+                navigate("/")
+                setIsMenuOpen(false)
+              }}
+              className="block w-full text-left px-3 py-2 text-xs font-semibold text-slate-300"
+            >
               Home
             </button>
-            <button onClick={() => scrollToSection('events')} className="block w-full text-left px-3 py-2 text-xs font-semibold text-slate-300">
+            <button
+              onClick={() => scrollToSection("events")}
+              className="block w-full text-left px-3 py-2 text-xs font-semibold text-slate-300"
+            >
               Events
             </button>
-            <button onClick={() => scrollToSection('contact')} className="block w-full text-left px-3 py-2 text-xs font-semibold text-slate-300">
+            <button
+              onClick={() => scrollToSection("contact")}
+              className="block w-full text-left px-3 py-2 text-xs font-semibold text-slate-300"
+            >
               Contact
             </button>
 
             {token ? (
               <div className="pt-2 border-t border-slate-800 space-y-2">
                 <Link
-                  to={role === 'college' ? '/admin-dashboard' : '/student-dashboard'}
+                  to={
+                    userRole === "admin" || userRole === "college"
+                      ? "/admin-dashboard"
+                      : "/student-dashboard"
+                  }
                   onClick={() => setIsMenuOpen(false)}
                   className="block w-full text-center px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold"
                 >
                   My Dashboard
                 </Link>
                 <button
-                  onClick={() => { handleLogout(); setIsMenuOpen(false); }}
+                  onClick={() => {
+                    handleLogout()
+                    setIsMenuOpen(false)
+                  }}
                   className="block w-full text-center px-4 py-2.5 bg-slate-900 text-rose-400 rounded-xl text-xs font-bold border border-slate-800"
                 >
                   Logout
@@ -156,7 +209,7 @@ const Header = () => {
         )}
       </div>
     </header>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header
