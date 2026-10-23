@@ -1,7 +1,5 @@
 import React, { useState } from "react"
-
 import { Link, useNavigate } from "react-router-dom"
-
 import {
   Eye,
   EyeOff,
@@ -13,21 +11,18 @@ import {
   ArrowLeft,
   ShieldCheck,
   CheckCircle2,
+  AlertCircle,
+  ArrowRight,
+  Sparkles,
+  QrCode
 } from "lucide-react"
-
-import AnimatedSection from "../components/AnimatedSection.jsx"
-
 import FloatingElements from "../components/FloatingElements.jsx"
-
 import { signIn, signUpAdmin, resendConfirmation } from "../lib/supabase.js"
 
 const CollegeAuth = () => {
   const [isLogin, setIsLogin] = useState(true)
-
   const [showPassword, setShowPassword] = useState(false)
-
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-
   const [formData, setFormData] = useState({
     collegeName: "",
     adminName: "",
@@ -36,48 +31,39 @@ const CollegeAuth = () => {
     password: "",
     confirmPassword: "",
   })
-
   const [errors, setErrors] = useState({})
-
   const [apiError, setApiError] = useState("")
-
   const [apiSuccess, setApiSuccess] = useState("")
-
   const [loading, setLoading] = useState(false)
-
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
 
   const navigate = useNavigate()
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-
     setFormData((prev) => ({ ...prev, [name]: value }))
-
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }))
-
     if (apiError) setApiError("")
   }
 
   const validateForm = () => {
     const newErrors = {}
-
     if (!isLogin) {
-      if (!formData.collegeName.trim())
-        newErrors.collegeName = "College / Institution name is required"
-
-      if (!formData.adminName.trim())
-        newErrors.adminName = "Admin representative name is required"
-
+      if (!formData.collegeName.trim()) {
+        newErrors.collegeName = "Institution name is required"
+      }
+      if (!formData.adminName.trim()) {
+        newErrors.adminName = "Representative name is required"
+      }
       if (!formData.contactNumber.trim()) {
-        newErrors.contactNumber = "Contact number is required"
+        newErrors.contactNumber = "Official contact number is required"
       }
     }
 
     if (!formData.email.trim()) {
       newErrors.email = "Official college email is required"
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
+      newErrors.email = "Please enter a valid official email"
     }
 
     if (!formData.password) {
@@ -91,19 +77,14 @@ const CollegeAuth = () => {
     }
 
     setErrors(newErrors)
-
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     if (!validateForm()) return
-
     setLoading(true)
-
     setApiError("")
-
     setApiSuccess("")
 
     try {
@@ -114,62 +95,38 @@ const CollegeAuth = () => {
         })
 
         localStorage.setItem("token", data.session.access_token)
-
         localStorage.setItem("user_email", formData.email)
-
         localStorage.setItem(
           "user_name",
-          data.user?.user_metadata?.full_name || formData.adminName || "Admin",
+          data.user?.user_metadata?.full_name || formData.email.split("@")[0],
         )
-
-        localStorage.setItem(
-          "college_name",
-          formData.collegeName || "Partner Institution",
-        )
-
-        localStorage.setItem("user_role", "college")
+        localStorage.setItem("user_role", "admin")
 
         navigate("/admin-dashboard")
       } else {
         const data = await signUpAdmin({
           email: formData.email,
-
           password: formData.password,
-
           adminName: formData.adminName,
-
           collegeName: formData.collegeName,
-
           contactNumber: formData.contactNumber,
         })
 
         if (data.session) {
-          // Email confirmation disabled — log in immediately
-
           localStorage.setItem("token", data.session.access_token)
-
           localStorage.setItem("user_email", formData.email)
-
-          localStorage.setItem("user_name", formData.adminName || "Admin")
-
-          localStorage.setItem(
-            "college_name",
-            formData.collegeName || "Partner Institution",
-          )
-
-          localStorage.setItem("user_role", "college")
+          localStorage.setItem("user_name", formData.adminName)
+          localStorage.setItem("college_name", formData.collegeName)
+          localStorage.setItem("user_role", "admin")
 
           navigate("/admin-dashboard")
         } else {
           setNeedsConfirmation(true)
-
           setApiSuccess(
-            "College account registered! Check your inbox and confirm your email, then sign in.",
+            "College account created! Please check your inbox to confirm your email, then sign in.",
           )
-
           setTimeout(() => {
             setIsLogin(true)
-
             setFormData({
               collegeName: "",
               adminName: "",
@@ -178,21 +135,17 @@ const CollegeAuth = () => {
               password: "",
               confirmPassword: "",
             })
-
             setApiSuccess("")
-
             setNeedsConfirmation(false)
           }, 4000)
         }
       }
     } catch (err) {
       const msg = err.message || ""
-
       if (msg.includes("Email not confirmed")) {
         setNeedsConfirmation(true)
-
         setApiError(
-          "Email not confirmed yet. Check your inbox or resend the confirmation email.",
+          "Email not confirmed yet. Check your inbox or resend the confirmation link.",
         )
       } else if (
         msg.includes("already registered") ||
@@ -201,13 +154,9 @@ const CollegeAuth = () => {
         setApiError(
           "An account with this email already exists. Please sign in.",
         )
-
         setIsLogin(true)
       } else {
-        setApiError(
-          msg ||
-            "Authentication failed. Please verify institution credentials.",
-        )
+        setApiError(msg || "Authentication failed. Please verify credentials.")
       }
     } finally {
       setLoading(false)
@@ -215,50 +164,105 @@ const CollegeAuth = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-12 flex items-center justify-center px-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/40 via-indigo-900/30 to-slate-950" />
+    <div className="relative min-h-screen bg-[#07090C] text-slate-100 flex items-center justify-center p-4 sm:p-6 overflow-hidden pt-24 pb-12 selection:bg-purple-500 selection:text-white">
       <FloatingElements />
 
-      <div className="relative z-10 w-full max-w-lg">
-        <AnimatedSection animation="fadeInLeft">
-          <Link
-            to="/"
-            className="inline-flex items-center space-x-2 text-white/80 hover:text-white mb-6 transition-all duration-300 hover:-translate-x-1"
-          >
-            <ArrowLeft size={18} />
-            <span className="text-sm font-medium">Return to Home</span>
-          </Link>
-        </AnimatedSection>
+      <div className="relative z-10 w-full max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden border border-white/10 bg-[#0E1118]/85 backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)]">
+        {/* Left Side: Host Studio Overview */}
+        <div className="lg:col-span-5 relative p-8 sm:p-10 flex flex-col justify-between overflow-hidden bg-gradient-to-br from-purple-950/60 via-[#141220] to-[#0A0D14] border-b lg:border-b-0 lg:border-r border-white/[0.08]">
+          <div className="ambient-glow top-0 left-0 w-64 h-64 bg-purple-500/20" />
 
-        <AnimatedSection
-          animation="scaleIn"
-          delay={100}
-          className="bg-slate-900/80 backdrop-blur-2xl border border-purple-500/20 rounded-3xl p-8 shadow-2xl shadow-purple-950/50"
-        >
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-purple-500 via-indigo-500 to-cyan-500 rounded-2xl mb-4 shadow-lg shadow-purple-500/30 group transition-transform duration-500 hover:scale-110">
-              <Building2 className="w-8 h-8 text-white transition-transform duration-500 group-hover:rotate-12" />
+          <div className="relative z-10">
+            <Link
+              to="/"
+              className="inline-flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-white mb-8 transition-colors group"
+            >
+              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+              <span>Back to Campus Buzz</span>
+            </Link>
+
+            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-6 shadow-lg shadow-purple-500/20">
+              <Building2 size={24} />
             </div>
-            <div className="inline-flex items-center space-x-1 px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full mb-3 text-xs text-purple-300 font-medium">
-              <ShieldCheck
-                size={12}
-                className="animate-pulse text-purple-400"
-              />
-              <span>College Organizer Hub</span>
-            </div>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight">
-              {isLogin ? "College Portal" : "Partner Your Institution"}
+
+            <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-tight mb-3">
+              College Host Studio.
             </h2>
-            <p className="text-slate-400 text-sm mt-2">
-              {isLogin
-                ? "Manage events, track live registrations & download attendee insights"
-                : "List your college fests & reach thousands of students nationwide"}
+            <p className="text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
+              Publish university fests, hackathons, and tech seminars. Access real-time attendee rosters and lightning-fast gate QR verification.
             </p>
           </div>
 
+          <div className="relative z-10 space-y-3 pt-6 border-t border-white/[0.08]">
+            <div className="flex items-center space-x-2 text-xs text-slate-300">
+              <ShieldCheck size={15} className="text-purple-400 shrink-0" />
+              <span>Verified university organizer credential</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs text-slate-300">
+              <QrCode size={15} className="text-emerald-400 shrink-0" />
+              <span>Live gate check-in scanner and attendee sync</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Host Form */}
+        <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-center">
+          {/* Segmented Switcher Pill */}
+          <div className="p-1 rounded-2xl bg-white/[0.04] border border-white/[0.08] grid grid-cols-2 gap-1 mb-8">
+            <button
+              type="button"
+              onClick={() => {
+                setIsLogin(true)
+                setErrors({})
+                setApiError("")
+              }}
+              className={`py-2 rounded-xl text-xs font-bold transition-all ${
+                isLogin
+                  ? "bg-white text-black shadow-md"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Organizer Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsLogin(false)
+                setErrors({})
+                setApiError("")
+              }}
+              className={`py-2 rounded-xl text-xs font-bold transition-all ${
+                !isLogin
+                  ? "bg-white text-black shadow-md"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Register College
+            </button>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="font-display font-bold text-xl text-white mb-1">
+              {isLogin ? "Host Console Sign In" : "Onboard Your Institution"}
+            </h3>
+            <p className="text-slate-400 text-xs">
+              {isLogin
+                ? "Enter your administrator credentials to manage your events."
+                : "Register your university or department to start publishing."}
+            </p>
+          </div>
+
+          {/* Alerts */}
+          {apiError && (
+            <div className="mb-5 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold flex items-start space-x-2">
+              <AlertCircle size={15} className="shrink-0 mt-0.5" />
+              <span>{apiError}</span>
+            </div>
+          )}
+
           {apiSuccess && (
-            <div className="mb-6 p-4 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl flex items-center space-x-3 text-emerald-300 text-sm animate-fadeIn">
-              <CheckCircle2 size={18} className="shrink-0" />
+            <div className="mb-5 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-start space-x-2">
+              <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
               <span>{apiSuccess}</span>
             </div>
           )}
@@ -267,199 +271,131 @@ const CollegeAuth = () => {
             {!isLogin && (
               <>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-                    Institution Name
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 ml-1">
+                    Institution / University Name
                   </label>
                   <div className="relative">
-                    <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                     <input
                       type="text"
                       name="collegeName"
-                      placeholder="Stanford University / MIT"
                       value={formData.collegeName}
                       onChange={handleInputChange}
-                      className={`w-full pl-11 pr-4 py-3.5 bg-slate-800/60 border rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition-all ${
-                        errors.collegeName
-                          ? "border-rose-500/50 focus:ring-rose-500"
-                          : "border-slate-700/60 focus:ring-purple-500 focus:border-transparent"
-                      }`}
+                      placeholder="e.g. Stanford University or MIT Media Lab"
+                      className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-xs sm:text-sm font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
                     />
                   </div>
-                  {errors.collegeName && (
-                    <p className="text-rose-400 text-xs mt-1">
-                      {errors.collegeName}
-                    </p>
-                  )}
+                  {errors.collegeName && <p className="text-rose-400 text-[11px] mt-1 ml-1">{errors.collegeName}</p>}
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-                    Admin / Coordinator Name
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                    <input
-                      type="text"
-                      name="adminName"
-                      placeholder="Dr. Sarah Connor"
-                      value={formData.adminName}
-                      onChange={handleInputChange}
-                      className={`w-full pl-11 pr-4 py-3.5 bg-slate-800/60 border rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition-all ${
-                        errors.adminName
-                          ? "border-rose-500/50 focus:ring-rose-500"
-                          : "border-slate-700/60 focus:ring-purple-500 focus:border-transparent"
-                      }`}
-                    />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 ml-1">
+                      Admin Representative
+                    </label>
+                    <div className="relative">
+                      <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <input
+                        type="text"
+                        name="adminName"
+                        value={formData.adminName}
+                        onChange={handleInputChange}
+                        placeholder="Dr. Jordan Hayes"
+                        className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-xs sm:text-sm font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                      />
+                    </div>
+                    {errors.adminName && <p className="text-rose-400 text-[11px] mt-1 ml-1">{errors.adminName}</p>}
                   </div>
-                  {errors.adminName && (
-                    <p className="text-rose-400 text-xs mt-1">
-                      {errors.adminName}
-                    </p>
-                  )}
-                </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-                    Contact Number
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                    <input
-                      type="tel"
-                      name="contactNumber"
-                      placeholder="+1 (555) 019-2834"
-                      value={formData.contactNumber}
-                      onChange={handleInputChange}
-                      className={`w-full pl-11 pr-4 py-3.5 bg-slate-800/60 border rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition-all ${
-                        errors.contactNumber
-                          ? "border-rose-500/50 focus:ring-rose-500"
-                          : "border-slate-700/60 focus:ring-purple-500 focus:border-transparent"
-                      }`}
-                    />
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 ml-1">
+                      Contact Number
+                    </label>
+                    <div className="relative">
+                      <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <input
+                        type="text"
+                        name="contactNumber"
+                        value={formData.contactNumber}
+                        onChange={handleInputChange}
+                        placeholder="+91 9876543210"
+                        className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-xs sm:text-sm font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                      />
+                    </div>
+                    {errors.contactNumber && <p className="text-rose-400 text-[11px] mt-1 ml-1">{errors.contactNumber}</p>}
                   </div>
-                  {errors.contactNumber && (
-                    <p className="text-rose-400 text-xs mt-1">
-                      {errors.contactNumber}
-                    </p>
-                  )}
                 </div>
               </>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-                Official Email
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 ml-1">
+                Official College Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="email"
                   name="email"
-                  placeholder="events@college.edu"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full pl-11 pr-4 py-3.5 bg-slate-800/60 border rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition-all ${
-                    errors.email
-                      ? "border-rose-500/50 focus:ring-rose-500"
-                      : "border-slate-700/60 focus:ring-purple-500 focus:border-transparent"
-                  }`}
+                  placeholder="fest-chair@college.edu"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-xs sm:text-sm font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
                 />
               </div>
-              {errors.email && (
-                <p className="text-rose-400 text-xs mt-1">{errors.email}</p>
-              )}
+              {errors.email && <p className="text-rose-400 text-[11px] mt-1 ml-1">{errors.email}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 ml-1">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
-                  placeholder="••••••••"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`w-full pl-11 pr-11 py-3.5 bg-slate-800/60 border rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition-all ${
-                    errors.password
-                      ? "border-rose-500/50 focus:ring-rose-500"
-                      : "border-slate-700/60 focus:ring-purple-500 focus:border-transparent"
-                  }`}
+                  placeholder="••••••••"
+                  className="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-xs sm:text-sm font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-rose-400 text-xs mt-1">{errors.password}</p>
-              )}
+              {errors.password && <p className="text-rose-400 text-[11px] mt-1 ml-1">{errors.password}</p>}
             </div>
 
             {!isLogin && (
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 ml-1">
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
-                    placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className={`w-full pl-11 pr-11 py-3.5 bg-slate-800/60 border rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition-all ${
-                      errors.confirmPassword
-                        ? "border-rose-500/50 focus:ring-rose-500"
-                        : "border-slate-700/60 focus:ring-purple-500 focus:border-transparent"
-                    }`}
+                    placeholder="••••••••"
+                    className="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-xs sm:text-sm font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-rose-400 text-xs mt-1">
-                    {errors.confirmPassword}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {apiError && (
-              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-300 text-xs text-center space-y-2">
-                <p>{apiError}</p>
-                {needsConfirmation && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await resendConfirmation(formData.email)
-                        setApiError(
-                          "Confirmation email resent! Check your inbox.",
-                        )
-                      } catch (e) {
-                        setApiError(e.message)
-                      }
-                    }}
-                    className="text-purple-400 underline font-semibold hover:text-purple-300"
-                  >
-                    Resend confirmation email
-                  </button>
+                  <p className="text-rose-400 text-[11px] mt-1 ml-1">{errors.confirmPassword}</p>
                 )}
               </div>
             )}
@@ -467,60 +403,27 @@ const CollegeAuth = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-purple-500 via-indigo-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-purple-500/25 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 mt-2"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-purple-500 via-indigo-500 to-pink-500 hover:scale-[1.01] active:scale-[0.99] text-white text-xs font-bold tracking-wide shadow-xl shadow-purple-500/30 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 mt-6"
             >
-              {loading
-                ? "Processing..."
-                : isLogin
-                  ? "Access College Admin Console"
-                  : "Register College Account"}
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>{isLogin ? "Open Host Console" : "Onboard Institution"}</span>
+                  <ArrowRight size={15} />
+                </>
+              )}
             </button>
           </form>
 
-          <div className="text-center mt-6">
-            <p className="text-slate-400 text-sm">
-              {isLogin
-                ? "Need to register your institution?"
-                : "Already partnered with us?"}
-              <button
-                onClick={() => {
-                  setIsLogin(!isLogin)
-
-                  setFormData({
-                    collegeName: "",
-                    adminName: "",
-                    contactNumber: "",
-                    email: "",
-                    password: "",
-                    confirmPassword: "",
-                  })
-
-                  setErrors({})
-
-                  setApiError("")
-                }}
-                className="text-purple-400 hover:text-purple-300 ml-2 font-semibold hover:underline"
-              >
-                {isLogin ? "Register college" : "Sign in"}
-              </button>
-            </p>
-          </div>
-
-          <div className="text-center mt-6 pt-6 border-t border-slate-800">
-            <p className="text-slate-400 text-xs mb-1">
-              Are you a student looking for events?
-            </p>
-            <Link
-              to="/student-auth"
-              className="text-purple-400 hover:text-purple-300 text-sm font-semibold inline-flex items-center space-x-1 group"
-            >
-              <span>Go to Student Portal</span>
-              <span className="group-hover:translate-x-1 transition-transform">
-                →
-              </span>
+          {/* Switch to Student Portal */}
+          <div className="mt-8 pt-6 border-t border-white/[0.06] text-center">
+            <span className="text-xs text-slate-400">Looking to attend events as a student? </span>
+            <Link to="/student-auth" className="text-xs font-bold text-purple-400 hover:underline">
+              Student Portal →
             </Link>
           </div>
-        </AnimatedSection>
+        </div>
       </div>
     </div>
   )

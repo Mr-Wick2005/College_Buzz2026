@@ -1,7 +1,5 @@
 import React, { useState } from "react"
-
 import { Link, useNavigate } from "react-router-dom"
-
 import {
   Eye,
   EyeOff,
@@ -12,60 +10,50 @@ import {
   ArrowLeft,
   Sparkles,
   CheckCircle2,
+  AlertCircle,
+  Zap,
+  ArrowRight,
+  ShieldCheck,
+  Compass
 } from "lucide-react"
-
-import AnimatedSection from "../components/AnimatedSection.jsx"
-
 import FloatingElements from "../components/FloatingElements.jsx"
-
 import { signIn, signUpStudent, resendConfirmation } from "../lib/supabase.js"
 
 const StudentAuth = () => {
   const [isLogin, setIsLogin] = useState(true)
-
   const [showPassword, setShowPassword] = useState(false)
-
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
   })
-
   const [errors, setErrors] = useState({})
-
   const [apiError, setApiError] = useState("")
-
   const [apiSuccess, setApiSuccess] = useState("")
-
   const [loading, setLoading] = useState(false)
-
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
 
   const navigate = useNavigate()
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-
     setFormData((prev) => ({ ...prev, [name]: value }))
-
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }))
-
     if (apiError) setApiError("")
   }
 
   const validateForm = () => {
     const newErrors = {}
-
-    if (!isLogin && !formData.name.trim())
+    if (!isLogin && !formData.name.trim()) {
       newErrors.name = "Full name is required"
+    }
 
     if (!formData.email.trim()) {
       newErrors.email = "Student email is required"
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
+      newErrors.email = "Please enter a valid university email"
     }
 
     if (!formData.password) {
@@ -79,19 +67,14 @@ const StudentAuth = () => {
     }
 
     setErrors(newErrors)
-
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     if (!validateForm()) return
-
     setLoading(true)
-
     setApiError("")
-
     setApiSuccess("")
 
     try {
@@ -102,14 +85,11 @@ const StudentAuth = () => {
         })
 
         localStorage.setItem("token", data.session.access_token)
-
         localStorage.setItem("user_email", formData.email)
-
         localStorage.setItem(
           "user_name",
           data.user?.user_metadata?.full_name || formData.email.split("@")[0],
         )
-
         localStorage.setItem("user_role", "student")
 
         navigate("/student-dashboard")
@@ -121,67 +101,48 @@ const StudentAuth = () => {
         })
 
         if (data.session) {
-          // Email confirmation is disabled — log in immediately
-
           localStorage.setItem("token", data.session.access_token)
-
           localStorage.setItem("user_email", formData.email)
-
           localStorage.setItem(
             "user_name",
             formData.name || formData.email.split("@")[0],
           )
-
           localStorage.setItem("user_role", "student")
 
           navigate("/student-dashboard")
         } else {
-          // Email confirmation required
-
           setNeedsConfirmation(true)
-
           setApiSuccess(
-            "Account created! Check your inbox and confirm your email, then sign in.",
+            "Account created! Check your inbox to confirm your email, then sign in.",
           )
-
           setTimeout(() => {
             setIsLogin(true)
-
             setFormData({
               name: "",
               email: formData.email,
               password: "",
               confirmPassword: "",
             })
-
             setApiSuccess("")
-
             setNeedsConfirmation(false)
           }, 4000)
         }
       }
     } catch (err) {
       const msg = err.message || ""
-
       if (msg.includes("Email not confirmed")) {
         setNeedsConfirmation(true)
-
         setApiError(
-          "Email not confirmed yet. Check your inbox or resend the confirmation email.",
+          "Email not confirmed yet. Check your inbox or resend the confirmation link.",
         )
       } else if (
         msg.includes("already registered") ||
         msg.includes("User already registered")
       ) {
-        setApiError(
-          "An account with this email already exists. Please sign in.",
-        )
-
+        setApiError("An account with this email already exists. Please sign in.")
         setIsLogin(true)
       } else {
-        setApiError(
-          msg || "Authentication failed. Please check your credentials.",
-        )
+        setApiError(msg || "Authentication failed. Please check credentials.")
       }
     } finally {
       setLoading(false)
@@ -189,47 +150,105 @@ const StudentAuth = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-12 flex items-center justify-center px-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/40 via-purple-900/30 to-slate-950" />
+    <div className="relative min-h-screen bg-[#07090C] text-slate-100 flex items-center justify-center p-4 sm:p-6 overflow-hidden pt-24 pb-12 selection:bg-indigo-500 selection:text-white">
       <FloatingElements />
 
-      <div className="relative z-10 w-full max-w-md">
-        <AnimatedSection animation="fadeInLeft">
-          <Link
-            to="/"
-            className="inline-flex items-center space-x-2 text-white/80 hover:text-white mb-6 transition-all duration-300 hover:-translate-x-1"
-          >
-            <ArrowLeft size={18} />
-            <span className="text-sm font-medium">Return to Home</span>
-          </Link>
-        </AnimatedSection>
+      <div className="relative z-10 w-full max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden border border-white/10 bg-[#0E1118]/85 backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)]">
+        {/* Left Side: Editorial Social Vibe */}
+        <div className="lg:col-span-5 relative p-8 sm:p-10 flex flex-col justify-between overflow-hidden bg-gradient-to-br from-indigo-950/60 via-[#121622] to-[#0A0D14] border-b lg:border-b-0 lg:border-r border-white/[0.08]">
+          <div className="ambient-glow top-0 left-0 w-64 h-64 bg-indigo-500/20" />
 
-        <AnimatedSection
-          animation="scaleIn"
-          delay={100}
-          className="bg-slate-900/80 backdrop-blur-2xl border border-indigo-500/20 rounded-3xl p-8 shadow-2xl shadow-indigo-950/50"
-        >
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 rounded-2xl mb-4 shadow-lg shadow-indigo-500/30 group transition-transform duration-500 hover:scale-110">
-              <GraduationCap className="w-8 h-8 text-white transition-transform duration-500 group-hover:rotate-12" />
+          <div className="relative z-10">
+            <Link
+              to="/"
+              className="inline-flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-white mb-8 transition-colors group"
+            >
+              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+              <span>Back to Campus Buzz</span>
+            </Link>
+
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-6 shadow-lg shadow-indigo-500/20">
+              <GraduationCap size={24} />
             </div>
-            <div className="inline-flex items-center space-x-1 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full mb-3 text-xs text-indigo-300 font-medium">
-              <Sparkles size={12} className="animate-pulse text-indigo-400" />
-              <span>Student Access Portal</span>
-            </div>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight">
-              {isLogin ? "Welcome Back!" : "Join Campus Buzz"}
+
+            <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-tight mb-3">
+              One Pass for Every Campus Fest.
             </h2>
-            <p className="text-slate-400 text-sm mt-2">
-              {isLogin
-                ? "Sign in to access your registered events & QR pass"
-                : "Create an account to explore & register for college fests"}
+            <p className="text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
+              Join 25,000+ university students. Unlock verified QR passes, RSVP to hackathons, and discover inter-collegiate cultural events.
             </p>
           </div>
 
+          <div className="relative z-10 space-y-3 pt-6 border-t border-white/[0.08]">
+            <div className="flex items-center space-x-2 text-xs text-slate-300">
+              <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+              <span>Instant digital passes in your mobile wallet</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs text-slate-300">
+              <CheckCircle2 size={15} className="text-indigo-400 shrink-0" />
+              <span>Cross-campus network and hackathon team matching</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: High-converting Modern Form */}
+        <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-center">
+          {/* Segmented Switcher Pill */}
+          <div className="p-1 rounded-2xl bg-white/[0.04] border border-white/[0.08] grid grid-cols-2 gap-1 mb-8">
+            <button
+              type="button"
+              onClick={() => {
+                setIsLogin(true)
+                setErrors({})
+                setApiError("")
+              }}
+              className={`py-2 rounded-xl text-xs font-bold transition-all ${
+                isLogin
+                  ? "bg-white text-black shadow-md"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsLogin(false)
+                setErrors({})
+                setApiError("")
+              }}
+              className={`py-2 rounded-xl text-xs font-bold transition-all ${
+                !isLogin
+                  ? "bg-white text-black shadow-md"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              New Student Account
+            </button>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="font-display font-bold text-xl text-white mb-1">
+              {isLogin ? "Welcome back, Student" : "Create Student ID"}
+            </h3>
+            <p className="text-slate-400 text-xs">
+              {isLogin
+                ? "Sign in to access your digital passes and RSVPs."
+                : "Register with your university or personal email to begin."}
+            </p>
+          </div>
+
+          {/* Alerts */}
+          {apiError && (
+            <div className="mb-5 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold flex items-start space-x-2">
+              <AlertCircle size={15} className="shrink-0 mt-0.5" />
+              <span>{apiError}</span>
+            </div>
+          )}
+
           {apiSuccess && (
-            <div className="mb-6 p-4 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl flex items-center space-x-3 text-emerald-300 text-sm animate-fadeIn">
-              <CheckCircle2 size={18} className="shrink-0" />
+            <div className="mb-5 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-start space-x-2">
+              <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
               <span>{apiSuccess}</span>
             </div>
           )}
@@ -237,144 +256,92 @@ const StudentAuth = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 ml-1">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
                     type="text"
                     name="name"
-                    placeholder="Alex Morgan"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className={`w-full pl-11 pr-4 py-3.5 bg-slate-800/60 border rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition-all ${
-                      errors.name
-                        ? "border-rose-500/50 focus:ring-rose-500"
-                        : "border-slate-700/60 focus:ring-indigo-500 focus:border-transparent"
-                    }`}
+                    placeholder="Alex Morgan"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-xs sm:text-sm font-medium focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                   />
                 </div>
-                {errors.name && (
-                  <p className="text-rose-400 text-xs mt-1">{errors.name}</p>
-                )}
+                {errors.name && <p className="text-rose-400 text-[11px] mt-1 ml-1">{errors.name}</p>}
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 ml-1">
                 Student Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="email"
                   name="email"
-                  placeholder="student@university.edu"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full pl-11 pr-4 py-3.5 bg-slate-800/60 border rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition-all ${
-                    errors.email
-                      ? "border-rose-500/50 focus:ring-rose-500"
-                      : "border-slate-700/60 focus:ring-indigo-500 focus:border-transparent"
-                  }`}
+                  placeholder="alex@university.edu"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-xs sm:text-sm font-medium focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 />
               </div>
-              {errors.email && (
-                <p className="text-rose-400 text-xs mt-1">{errors.email}</p>
-              )}
+              {errors.email && <p className="text-rose-400 text-[11px] mt-1 ml-1">{errors.email}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 ml-1">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
-                  placeholder="••••••••"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`w-full pl-11 pr-11 py-3.5 bg-slate-800/60 border rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition-all ${
-                    errors.password
-                      ? "border-rose-500/50 focus:ring-rose-500"
-                      : "border-slate-700/60 focus:ring-indigo-500 focus:border-transparent"
-                  }`}
+                  placeholder="••••••••"
+                  className="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-xs sm:text-sm font-medium focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-rose-400 text-xs mt-1">{errors.password}</p>
-              )}
+              {errors.password && <p className="text-rose-400 text-[11px] mt-1 ml-1">{errors.password}</p>}
             </div>
 
             {!isLogin && (
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 ml-1">
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
-                    placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className={`w-full pl-11 pr-11 py-3.5 bg-slate-800/60 border rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition-all ${
-                      errors.confirmPassword
-                        ? "border-rose-500/50 focus:ring-rose-500"
-                        : "border-slate-700/60 focus:ring-indigo-500 focus:border-transparent"
-                    }`}
+                    placeholder="••••••••"
+                    className="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-xs sm:text-sm font-medium focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-rose-400 text-xs mt-1">
-                    {errors.confirmPassword}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {apiError && (
-              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-300 text-xs text-center space-y-2">
-                <p>{apiError}</p>
-                {needsConfirmation && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await resendConfirmation(formData.email)
-                        setApiError(
-                          "Confirmation email resent! Check your inbox.",
-                        )
-                      } catch (e) {
-                        setApiError(e.message)
-                      }
-                    }}
-                    className="text-indigo-400 underline font-semibold hover:text-indigo-300"
-                  >
-                    Resend confirmation email
-                  </button>
+                  <p className="text-rose-400 text-[11px] mt-1 ml-1">{errors.confirmPassword}</p>
                 )}
               </div>
             )}
@@ -382,56 +349,27 @@ const StudentAuth = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-indigo-500/25 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 mt-2"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:scale-[1.01] active:scale-[0.99] text-white text-xs font-bold tracking-wide shadow-xl shadow-indigo-500/30 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 mt-6"
             >
-              {loading
-                ? "Processing..."
-                : isLogin
-                  ? "Sign In to Student Portal"
-                  : "Create Student Account"}
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>{isLogin ? "Sign In to Portal" : "Create Account"}</span>
+                  <ArrowRight size={15} />
+                </>
+              )}
             </button>
           </form>
 
-          <div className="text-center mt-6">
-            <p className="text-slate-400 text-sm">
-              {isLogin ? "Don't have an account?" : "Already registered?"}
-              <button
-                onClick={() => {
-                  setIsLogin(!isLogin)
-
-                  setFormData({
-                    name: "",
-                    email: "",
-                    password: "",
-                    confirmPassword: "",
-                  })
-
-                  setErrors({})
-
-                  setApiError("")
-                }}
-                className="text-indigo-400 hover:text-indigo-300 ml-2 font-semibold hover:underline"
-              >
-                {isLogin ? "Sign up" : "Sign in"}
-              </button>
-            </p>
-          </div>
-
-          <div className="text-center mt-6 pt-6 border-t border-slate-800">
-            <p className="text-slate-400 text-xs mb-1">
-              Are you a College Administrator?
-            </p>
-            <Link
-              to="/college-auth"
-              className="text-indigo-400 hover:text-indigo-300 text-sm font-semibold inline-flex items-center space-x-1 group"
-            >
-              <span>Go to College Portal</span>
-              <span className="group-hover:translate-x-1 transition-transform">
-                →
-              </span>
+          {/* Switch to College Admin */}
+          <div className="mt-8 pt-6 border-t border-white/[0.06] text-center">
+            <span className="text-xs text-slate-400">Are you a university or fest organizer? </span>
+            <Link to="/college-auth" className="text-xs font-bold text-indigo-400 hover:underline">
+              College Host Console →
             </Link>
           </div>
-        </AnimatedSection>
+        </div>
       </div>
     </div>
   )
